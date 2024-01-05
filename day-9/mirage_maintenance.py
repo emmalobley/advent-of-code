@@ -4,38 +4,63 @@ import numpy as np
 def get_sequences(filename):
     with open(filename, "r") as file:
         lines = file.readlines()
-    return [line.rstrip().split() for line in lines]
 
+    sequences = []
+    for line in lines:
+        new_line = []
+        for item in line.rstrip().split():
+            new_line.append(int(item))
+        sequences.append(new_line)
+    return sequences
 
-def calc_next(sequence):
-    nums = [int(item) for item in sequence]
-    n = len(nums)
-    if n < 2:
-        return None  # Sequence is too short to predict the next value
+def next_sequence(line):
+    new_sequence = []
+    for i in range(len(line)-1):
+        new_sequence.append(int(line[i+1]) - int(line[i]))
+    return new_sequence
 
-    x_values = np.arange(1, n + 1)  # Generate x values from 1 to n
-
-    # Fit a polynomial of degree n-1 to the sequence
-    coeffs = np.polyfit(x_values, nums, n - 1)
-
-    # Predict the next value in the sequence
-    next_value = np.polyval(coeffs, n + 1)
-    return round(next_value)
+def get_next_item(line):
+    matrix = []
+    matrix.append(line)
+    while set(next_sequence(line)) != {0}:
+        line = next_sequence(line)
+        matrix.append(line)
+    new_num = 0
+    for line in matrix[::-1]:
+        line.append(line[-1] + new_num)
+        new_num = line[-1]
+    # print(matrix)
+    return matrix[0][-1]
 
 
 sequences = get_sequences("test_input.txt")
-next_sum = 0
-for sequence in sequences:
-    print(calc_next(sequence))
-    next_sum = next_sum + calc_next(sequence)
+sum = 0
+for line in sequences:
+    sum = sum + get_next_item(line)
 
-print(next_sum)
+print(sum)
+
+# part 2
+from collections import deque
+
+def get_prev_item(line):
+    matrix = []
+    matrix.append(line)
+    while set(next_sequence(line)) != {0}:
+        line = next_sequence(line)
+        matrix.append(line)
+    new_num = 0
+    for line in matrix[::-1]:
+        line = deque(line)
+        line.appendleft(line[0] - new_num)
+        line = list(line)
+        new_num = line[0]
+    return new_num
 
 
 sequences = get_sequences("puzzle_input.txt")
-next_sum = 0
-for sequence in sequences:
-    print(calc_next(sequence))
-    next_sum = next_sum + calc_next(sequence)
+sum = 0
+for line in sequences:
+    sum = sum + get_prev_item(line)
 
-print(next_sum)
+print(sum)
